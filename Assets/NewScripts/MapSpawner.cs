@@ -14,6 +14,7 @@ public class MapSpawner : MonoBehaviour
     [SerializeField] private List<GameObject> cloneObjects = new();
     [SerializeField] private int mapIndex;
     [SerializeField] private int currentIndexOfMap;
+    
     private bool isMoving;
     public event Action OnStartMoving;
     public event Action OnStopMoving;
@@ -21,7 +22,7 @@ public class MapSpawner : MonoBehaviour
     public event Action OnAllFinish;
 
     public int CurrentIndexOfMap
-    {
+    { 
         get => currentIndexOfMap;
     }
     private void Start()

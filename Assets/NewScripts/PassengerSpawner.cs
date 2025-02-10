@@ -14,14 +14,13 @@ public class PassengerSpawner : MonoBehaviour
     [SerializeField] private Camera mainCamera;
     public event Action OnAllCorrectSnap;
     public event Action OnBuildingCorrectSnap;
-    
     private int snapIndex;
     public List<DraggedObject> DraggedObjects
     {
         get => draggedObjects;
         set => draggedObjects = value;
     }
-
+    
     private void OnEnable()
     {
         mapSpawner.OnStopMoving += SetDragPermission;

@@ -28,41 +28,49 @@ public class NextObjectMovement : MonoBehaviour
         {
             case 0:
                 MovePassengers();
-                currentIndexOfObject++;
-                break;
-
-            case 1:
                 MoveBuilding(0);
                 currentIndexOfObject++;
                 break;
-
-            case 2:
+            case 1:
+                foreach (var pig in passengerSpawner.DraggedObjects)
+                {
+                    pig.SnapOffsetX = 1.5f;
+                    pig.SnapOffsetY = -2f;
+                    pig.OriginOffsetY = 1.2f;
+                }
                 MoveBuildingWithReset(0);
                 MoveBuilding(1);
                 currentIndexOfObject++;
                 break;
-            case 3:
+            case 2:
                 MoveBuildingWithReset(1);
                 MoveBuilding(2);
                 currentIndexOfObject++;
                 break;
-            case 4:
+            case 3:
                 MoveBuildingWithReset(2);
+                MoveBuilding(3);
+                currentIndexOfObject++;
+                break;
+            case 4:
+                MoveBuildingWithReset(3);
+                MoveBuilding(0);
                 MoveFruits();
                 currentIndexOfObject++;
                 break;
             case 5:
-                MoveBuilding(0);
-                currentIndexOfObject++;
-                break;
-            case 6:
                 MoveBuildingWithReset(0);
                 MoveBuilding(1);
                 currentIndexOfObject++;
                 break;
-            case 7:
+            case 6:
                 MoveBuildingWithReset(1);
                 MoveBuilding(2);
+                currentIndexOfObject++;
+                break;
+            case 7:
+                MoveBuildingWithReset(2);
+                MoveBuilding(3);
                 currentIndexOfObject++;
                 break;
         }

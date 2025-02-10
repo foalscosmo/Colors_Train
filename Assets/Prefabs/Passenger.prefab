@@ -101,10 +101,15 @@ MonoBehaviour:
   spriteRenderer: {fileID: 1830186054227772544}
   objCollider: {fileID: 2710286778274570284}
   moveSpeed: 30
-  isDragging: 0
   startPosition: {x: 0, y: 0}
   isSnapped: 0
   targetTransforms: []
+  canDrag: 0
+  snapOffsetY: 1.2
+  snapOffsetX: 0
+  originOffsetY: 0
+  snapRange: 3
+  draggedLayer: 0
 --- !u!70 &2710286778274570284
 CapsuleCollider2D:
   m_ObjectHideFlags: 0

@@ -8,7 +8,8 @@ public class BuildingSpawner : MonoBehaviour
     [SerializeField] private List<SpriteRenderer> buildingSpriteRenderers = new();
     [SerializeField] private Transform spawnPoint;
     [SerializeField] private List<Transform> buildingTransforms = new();
-    
+   
+
     public List<SpriteRenderer> BuildingSpriteRenderers
     {
         get => buildingSpriteRenderers;
