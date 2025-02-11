@@ -14,8 +14,6 @@ public class FruitsSpawner : MonoBehaviour
     [SerializeField] private Camera mainCamera;
     public event Action OnAllCorrectSnapFruits;
     public event Action OnBuildingCorrectSnapFruits;
-
-
     [SerializeField] private int snapIndexOfFruits;
     public List<DraggedObject> DraggedObjects
     {
@@ -27,19 +25,35 @@ public class FruitsSpawner : MonoBehaviour
     {
         mapSpawner.OnSecondStageEnter += SetDragPermissionToFruits;
         mapSpawner.OnStopMoving += SetDragPermissionToFruits;
-        
-        foreach (var dragObject in draggedObjects) dragObject.OnCorrectSnap += SnapCounterOnFirstStageFruits;
-        foreach (var dragObject in draggedObjects) dragObject.OnCorrectSnap += SnapCounterOnSecondStageFruits;
+        mapSpawner.OnStartMoving += SetDragPermissionFalse;
+
+        foreach (var dragObject in draggedObjects)
+        {
+            dragObject.OnCorrectSnap += Test;
+            dragObject.OnCorrectSnap += SnapCounterOnFirstStageFruits;
+            dragObject.OnCorrectSnap += SnapCounterOnSecondStageFruits;
+            dragObject.OnDragStarted += HandleDraggingOnlyOne;
+            dragObject.OnIncorrectSnap += HandleDraggingAfterReturn;
+            dragObject.OnCorrectSnapWithInt += HandleDraggingAfterCorrect;
+        }
     }
 
     private void OnDisable()
     {
         mapSpawner.OnSecondStageEnter -= SetDragPermissionToFruits;
         mapSpawner.OnStopMoving -= SetDragPermissionToFruits;
+        mapSpawner.OnStartMoving -= SetDragPermissionFalse;
 
-        foreach (var dragObject in draggedObjects) dragObject.OnCorrectSnap -= SnapCounterOnFirstStageFruits;
-        foreach (var dragObject in draggedObjects) dragObject.OnCorrectSnap -= SnapCounterOnSecondStageFruits;
 
+        foreach (var dragObject in draggedObjects)
+        {
+            dragObject.OnCorrectSnap -= Test;
+            dragObject.OnCorrectSnap -= SnapCounterOnFirstStageFruits;
+            dragObject.OnCorrectSnap -= SnapCounterOnSecondStageFruits;
+            dragObject.OnDragStarted -= HandleDraggingOnlyOne;
+            dragObject.OnIncorrectSnap -= HandleDraggingAfterReturn;
+            dragObject.OnCorrectSnapWithInt -= HandleDraggingAfterCorrect;
+        }
     }
 
     public void Awake()
@@ -52,7 +66,9 @@ public class FruitsSpawner : MonoBehaviour
            draggedObjects[i] = passenger.GetComponent<DraggedObject>();
            draggedObjects[i].StartPosition = alignPoints[i].position;
            draggedObjects[i].TargetTransforms = trainSlots;
+           draggedObjects[i].SnapOffsetY = 1.1f;
            draggedObjects[i].CanDrag = false;
+           draggedObjects[i].ObjIndex = i;
         }
     }
     
@@ -67,6 +83,56 @@ public class FruitsSpawner : MonoBehaviour
         }
     }
     
+    private void HandleDraggingOnlyOne(int index)
+    {
+        for (var i = 0; i < draggedObjects.Count; i++)
+        {
+            draggedObjects[i].CanDrag = (i == index);
+        }
+    }
+    
+    private void HandleDraggingAfterReturn(int index)
+    {
+        foreach (var obj in draggedObjects)
+        {
+            obj.CanDrag = !obj.IsSnapped;
+        }
+    }
+    
+    private void HandleDraggingAfterCorrect(int index)
+    {
+        if (currentIndex < 3)
+        {
+            for (var i = 0; i < draggedObjects.Count; i++)
+            {
+                var isSnapped = draggedObjects[i].IsSnapped;
+                draggedObjects[i].CanDrag = !isSnapped && (i != index);
+            }
+        }else if (currentIndex == 3)
+        {
+            for (var i = 0; i < draggedObjects.Count; i++)
+            {
+                draggedObjects[i].CanDrag = false;
+            }
+        }
+    }
+    
+    private int currentIndex;
+
+    private void Test()
+    {
+        currentIndex++;
+    }
+    
+    
+
+    private void SetDragPermissionFalse()
+    {
+        foreach (var dragObj in draggedObjects)
+        {
+            dragObj.CanDrag = false;
+        }
+    }
     
     private void SnapCounterOnFirstStageFruits()
     {

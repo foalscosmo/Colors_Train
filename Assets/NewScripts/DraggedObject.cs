@@ -1,20 +1,24 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using DG.Tweening;
 using UnityEngine;
 
 public class DraggedObject : MonoBehaviour
 {
-   private Camera camera;
+    private new Camera camera;
     [SerializeField] private SpriteRenderer spriteRenderer;
     [SerializeField] private Collider2D objCollider;
     [SerializeField] private float moveSpeed;
     private bool isDragging;
     private Vector2 touchOffset;
-    private Vector2 currentTouchPosition;
     [SerializeField] private Vector2 startPosition;
     [SerializeField] private bool isSnapped;
     public event Action OnCorrectSnap;
+    public event Action<int> OnDragStarted;
+    public event Action<int> OnIncorrectSnap;
+    public event Action<int> OnCorrectSnapWithInt;
+    [SerializeField] private int objIndex;
     [SerializeField] private List<Transform> targetTransforms = new();
     [SerializeField] private bool canDrag;
     [SerializeField] private float snapOffsetY;
@@ -64,12 +68,6 @@ public class DraggedObject : MonoBehaviour
         set => startPosition = value;
     }
 
-    public bool IsDragging
-    {
-        get => isDragging;
-        set => isDragging = value;
-    }
-
     public SpriteRenderer SpriteRenderer
     {
         get => spriteRenderer;
@@ -90,6 +88,12 @@ public class DraggedObject : MonoBehaviour
         set => draggedLayer = value;
     }
 
+    public int ObjIndex
+    {
+        get => objIndex;
+        set => objIndex = value;
+    }
+
     private void Start()
     {
         camera = Camera.main;
@@ -97,91 +101,94 @@ public class DraggedObject : MonoBehaviour
 
     private void Update()
     {
-        if (Input.touchCount > 0) 
+        if (Input.touchCount <= 0) return;
+        for (var i = 0; i < Input.touchCount; i++)
         {
-            Touch lastTouch = Input.GetTouch(Input.touchCount - 1); // Get the last touch
+            var touch = Input.GetTouch(i);
 
-            switch (lastTouch.phase)
+            if (touch.phase == TouchPhase.Began && activeTouchID == -1)
             {
-                case TouchPhase.Began:
-                    HandleTouchDown(lastTouch);
-                    break;
-                case TouchPhase.Moved:
-                case TouchPhase.Stationary:
-                    HandleTouchMove(lastTouch);
-                    break;
-                case TouchPhase.Ended:
-                case TouchPhase.Canceled:
-                    HandleTouchUp(lastTouch);
-                    break;
+                HandleTouchDown(touch);
+            }
+            else if (touch.fingerId == activeTouchID)
+            {
+                switch (touch.phase)
+                {
+                    case TouchPhase.Moved:
+                    case TouchPhase.Stationary:
+                        HandleTouchMove(touch);
+                        break;
+                    case TouchPhase.Ended:
+                    case TouchPhase.Canceled:
+                        HandleTouchUp(touch);
+                        break;
+                    case TouchPhase.Began:
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
             }
         }
     }
 
     private void HandleTouchDown(Touch touch)
     {
+        if(isSnapped) return;
         Vector2 touchWorldPos = camera.ScreenToWorldPoint(touch.position);
 
-        if (objCollider.OverlapPoint(touchWorldPos) && canDrag)
-        {
-            activeTouchID = touch.fingerId; // Assign the touch ID
-            transform.DOScale(1.2f, 0.2f);
-            spriteRenderer.sortingOrder = 10;
-            isDragging = true;
-            currentTouchPosition = touchWorldPos;
-            touchOffset = (Vector2)transform.position - touchWorldPos;
-        }
+        if (!objCollider.OverlapPoint(touchWorldPos) || !canDrag) return;
+        OnDragStarted?.Invoke(objIndex);
+        activeTouchID = touch.fingerId;
+        Transform transform1;
+        (transform1 = transform).DOScale(1.2f, 0.2f);
+        spriteRenderer.sortingOrder = 10;
+        isDragging = true;
+        touchOffset = (Vector2)transform1.position - touchWorldPos;
     }
 
     private void HandleTouchUp(Touch touch)
     {
-        if (touch.fingerId == activeTouchID) // Only process if it’s the right touch
+        if (touch.fingerId != activeTouchID) return;
+        if (canDrag)
         {
-            if (canDrag)
+            foreach (var target in from target in targetTransforms let distanceToTarget = Vector2.Distance(
+                         new Vector2(transform.position.x, transform.position.y),
+                         target.position
+                     ) let trainSlot = target.GetComponent<MatchingLayerType>() where distanceToTarget <= snapRange && trainSlot != null && DraggedLayer == trainSlot.MatchingLayer select target)
             {
-                foreach (var target in targetTransforms)
-                {
-                    float distanceToTarget = Vector2.Distance(
-                        new Vector2(transform.position.x, transform.position.y),
-                        target.position
-                    );
-
-                    var trainSlot = target.GetComponent<MatchingLayerType>();
-                    if (distanceToTarget <= snapRange && trainSlot != null && DraggedLayer == trainSlot.MatchingLayer)
-                    {
-                        SnapToTarget(target);
-                        break;
-                    }
-                }
-                isDragging = false;
-                spriteRenderer.sortingOrder = 8;
+                SnapToTarget(target);
+                break;
             }
-
-            if (!IsSnapped && canDrag)
-            {
-                ReturnToOriginalPosition();
-            }
-
-            activeTouchID = -1; // Reset the active touch ID
+            isDragging = false;
+            spriteRenderer.sortingOrder = 5;
         }
+
+        if (!IsSnapped && canDrag)
+        {
+            ReturnToOriginalPosition();
+        }
+
+        canDrag = false;
+        activeTouchID = -1;
     }
 
     private void HandleTouchMove(Touch touch)
     {
-        if (touch.fingerId == activeTouchID) // Ensure we're tracking the correct touch
-        {
-            Vector2 touchWorldPos = camera.ScreenToWorldPoint(touch.position);
-            Vector2 targetPosition = touchWorldPos + touchOffset;
-            transform.position = Vector2.Lerp(transform.position, targetPosition, moveSpeed);
-        }
+        if (touch.fingerId != activeTouchID) return;
+        Vector2 touchWorldPos = camera.ScreenToWorldPoint(touch.position);
+        Vector2 targetPosition = touchWorldPos + touchOffset;
+        transform.position = Vector2.Lerp(transform.position, targetPosition, moveSpeed);
     }
 
     private void SnapToTarget(Transform target)
     {
         var position = target.position;
-        Vector3 targetPosition = new Vector3(position.x + snapOffsetX, position.y + snapOffsetY);
+        var targetPosition = new Vector3(position.x + snapOffsetX, position.y + snapOffsetY);
         spriteRenderer.sortingOrder = 5;
-        transform.DOMove(targetPosition, 0.35f).SetEase(Ease.OutBack);
+        transform.DOMove(targetPosition, 0.35f).SetEase(Ease.OutBack).OnComplete(() =>
+        {
+            OnCorrectSnapWithInt?.Invoke(objIndex);
+        });
         IsSnapped = true;
         canDrag = false;
         transform.SetParent(target);
@@ -191,21 +198,27 @@ public class DraggedObject : MonoBehaviour
 
     private void ReturnToOriginalPosition()
     {
-        spriteRenderer.sortingOrder = 5;
         transform.DOScale(1f, 0.2f);
-        transform.DOMove(new Vector2(startPosition.x, startPosition.y + originOffsetY), 0.35f);
+        transform.DOMove(new Vector2(startPosition.x, startPosition.y + originOffsetY), 0.3f).OnComplete(() =>
+        {
+            OnIncorrectSnap?.Invoke(objIndex);
+            spriteRenderer.sortingOrder = 5;
+        });
     }
-
-    // Draw snap range in editor
+    
     private void OnDrawGizmos()
     {
-        if (targetTransforms == null) return;
+        if (targetTransforms == null || targetTransforms.Count == 0)
+            return;
 
-        Gizmos.color = Color.green;
+        Gizmos.color = Color.red;
+
         foreach (var target in targetTransforms)
         {
-            if (target == null) continue;
-            Gizmos.DrawWireSphere(target.position, snapRange);
+            if (target != null)
+            {
+                Gizmos.DrawWireSphere(target.position, snapRange);
+            }
         }
     }
 }

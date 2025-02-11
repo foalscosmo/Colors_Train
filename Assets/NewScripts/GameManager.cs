@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
@@ -7,6 +9,11 @@ public class GameManager : MonoBehaviour
     [SerializeField] private FruitsSpawner fruitsSpawner;
     [SerializeField] private MapSpawner mapSpawner;
     [SerializeField] private GameObject finishPanel;
+    
+    private void Awake()
+    {
+        Application.targetFrameRate = 300;
+    }
 
     private void OnEnable()
     {
@@ -39,12 +46,20 @@ public class GameManager : MonoBehaviour
 
     private void FinishGame()
     {
-        finishPanel.SetActive(true);
+       // finishPanel.SetActive(true);
+       
+       //finish game
     }
 
     private void SetTargetTransformToBuildings()
     {
         if(mapSpawner.CurrentIndexOfMap > 1) return;
+        StartCoroutine(DelayAfterResetTransform());
+    }
+
+    private IEnumerator DelayAfterResetTransform()
+    {
+        yield return new WaitForSecondsRealtime(1f);
         foreach (var draggedObj in passengerSpawner.DraggedObjects)
         {
             draggedObj.TargetTransforms = buildingSpawner.BuildingTransforms;
@@ -67,6 +82,12 @@ public class GameManager : MonoBehaviour
     private void SetFruitsTargetTransformBuildings()
     {
         if(mapSpawner.CurrentIndexOfMap > 5) return;
+        StartCoroutine(DelayAfterResetFruits());
+    }
+    
+    private IEnumerator DelayAfterResetFruits()
+    {
+        yield return new WaitForSecondsRealtime(1f);
         foreach (var draggedObj in fruitsSpawner.DraggedObjects)
         {
             draggedObj.TargetTransforms = buildingSpawner.BuildingTransforms;

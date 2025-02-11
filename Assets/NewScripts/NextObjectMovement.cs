@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
 
@@ -9,7 +11,9 @@ public class NextObjectMovement : MonoBehaviour
     [SerializeField] private BuildingSpawner buildingSpawner;
     [SerializeField] private float moveDistance = 52f;
     [SerializeField] private float moveDuration = 7f;
-
+    [SerializeField] private Transform tunnel;
+    private Vector2 tunnelStartPosition = new Vector2(32,-1.5f);
+ 
     private int currentIndexOfObject;
 
     private void OnEnable()
@@ -28,47 +32,68 @@ public class NextObjectMovement : MonoBehaviour
         {
             case 0:
                 MovePassengers();
+                MoveTunnel();
                 MoveBuilding(0);
                 currentIndexOfObject++;
                 break;
             case 1:
+                ResetTunnel();
+                MoveTunnel();
                 foreach (var pig in passengerSpawner.DraggedObjects)
                 {
                     pig.SnapOffsetX = 1.5f;
-                    pig.SnapOffsetY = -2f;
-                    pig.OriginOffsetY = 1.2f;
+                    pig.SnapOffsetY = -1.5f;
+                    pig.OriginOffsetY = 1.1f;
                 }
                 MoveBuildingWithReset(0);
                 MoveBuilding(1);
                 currentIndexOfObject++;
                 break;
             case 2:
+                ResetTunnel();
+                MoveTunnel();
                 MoveBuildingWithReset(1);
                 MoveBuilding(2);
                 currentIndexOfObject++;
                 break;
             case 3:
+                ResetTunnel();
+                MoveTunnel();
                 MoveBuildingWithReset(2);
                 MoveBuilding(3);
                 currentIndexOfObject++;
                 break;
             case 4:
+                ResetTunnel();
+                MoveTunnel();
                 MoveBuildingWithReset(3);
                 MoveBuilding(0);
                 MoveFruits();
                 currentIndexOfObject++;
                 break;
             case 5:
+                ResetTunnel();
+                MoveTunnel();
+                foreach (var fruits in fruitsSpawner.DraggedObjects)
+                {
+                    fruits.SnapOffsetX = -1.5f;
+                    fruits.SnapOffsetY = -1.5f;
+                    fruits.OriginOffsetY = 1f;
+                }
                 MoveBuildingWithReset(0);
                 MoveBuilding(1);
                 currentIndexOfObject++;
                 break;
             case 6:
+                ResetTunnel();
+                MoveTunnel();
                 MoveBuildingWithReset(1);
                 MoveBuilding(2);
                 currentIndexOfObject++;
                 break;
             case 7:
+                ResetTunnel();
+                MoveTunnel();
                 MoveBuildingWithReset(2);
                 MoveBuilding(3);
                 currentIndexOfObject++;
@@ -119,7 +144,16 @@ public class NextObjectMovement : MonoBehaviour
     private void ResetBuildingPosition(int buildingIndex)
     {
         var building = buildingSpawner.BuildingObjects[buildingIndex];
-        building.transform.position = buildingSpawner.SpawnPoint.transform.position;
+        if (buildingIndex == 0)
+        {
+             building.transform.position = buildingSpawner.SpawnPoint.transform.position;
+        }
+        else
+        {
+            building.transform.position = new Vector2(buildingSpawner.SpawnPoint.transform.position.x,
+                buildingSpawner.SpawnPoint.transform.position.y + 1.3f);
+        }
+        
         var child = building.transform.GetChild(0);
         var transform1 = child.transform;
         var position = transform1.position;
@@ -138,5 +172,16 @@ public class NextObjectMovement : MonoBehaviour
                     moveDuration)
                 .SetEase(Ease.Linear);
         }
+    }
+
+    private void MoveTunnel()
+    {
+        tunnel.DOMove(new Vector2(tunnel.transform.position.x - 52, tunnel.transform.position.y), moveDuration).SetEase(Ease.Linear);
+
+    }
+
+    private void ResetTunnel()
+    {
+        tunnel.position = tunnelStartPosition;
     }
 }

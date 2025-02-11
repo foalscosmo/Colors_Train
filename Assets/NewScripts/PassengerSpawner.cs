@@ -25,16 +25,32 @@ public class PassengerSpawner : MonoBehaviour
     {
         mapSpawner.OnStopMoving += SetDragPermission;
         mapSpawner.OnStartMoving += SetDragPermissionFalse;
-        foreach (var dragObject in draggedObjects) dragObject.OnCorrectSnap += SnapCounterOnFirstStage;
-        foreach (var dragObject in draggedObjects) dragObject.OnCorrectSnap += SnapCounterOnSecondStage;
+        
+        foreach (var dragObject in draggedObjects)
+        {
+            dragObject.OnCorrectSnap += Test;
+            dragObject.OnCorrectSnap += SnapCounterOnFirstStage;
+            dragObject.OnCorrectSnap += SnapCounterOnSecondStage;
+            dragObject.OnDragStarted += HandleDraggingOnlyOne;
+            dragObject.OnIncorrectSnap += HandleDraggingAfterReturn;
+            dragObject.OnCorrectSnapWithInt += HandleDraggingAfterCorrect;
+        }
     }
 
     private void OnDisable()
     {
         mapSpawner.OnStopMoving -= SetDragPermission;
         mapSpawner.OnStartMoving -= SetDragPermissionFalse;
-        foreach (var dragObject in draggedObjects) dragObject.OnCorrectSnap -= SnapCounterOnFirstStage;
-        foreach (var dragObject in draggedObjects) dragObject.OnCorrectSnap -= SnapCounterOnSecondStage;
+        
+        foreach (var dragObject in draggedObjects)
+        {
+            dragObject.OnCorrectSnap -= Test;
+            dragObject.OnCorrectSnap -= SnapCounterOnFirstStage;
+            dragObject.OnCorrectSnap -= SnapCounterOnSecondStage;
+            dragObject.OnDragStarted -= HandleDraggingOnlyOne;
+            dragObject.OnIncorrectSnap -= HandleDraggingAfterReturn;
+            dragObject.OnCorrectSnapWithInt -= HandleDraggingAfterCorrect;
+        }
     }
 
     private void Awake()
@@ -47,7 +63,9 @@ public class PassengerSpawner : MonoBehaviour
            draggedObjects[i] = passenger.GetComponent<DraggedObject>();
            draggedObjects[i].StartPosition = alignPoints[i].position;
            draggedObjects[i].TargetTransforms = trainSlots;
+           draggedObjects[i].SnapOffsetY = 1.1f;
            draggedObjects[i].CanDrag = false;
+           draggedObjects[i].ObjIndex = i;
         }
     }
     
@@ -57,6 +75,50 @@ public class PassengerSpawner : MonoBehaviour
         {
             dragObj.CanDrag = true;
         }
+    }
+    
+    private void HandleDraggingOnlyOne(int index)
+    {
+        for (var i = 0; i < draggedObjects.Count; i++)
+        {
+            draggedObjects[i].CanDrag = (i == index && !draggedObjects[i].IsSnapped);
+        }
+    }
+    
+    private void HandleDraggingAfterReturn(int index)
+    {
+        foreach (var obj in draggedObjects)
+        {
+            obj.CanDrag = !obj.IsSnapped;
+
+        }
+    }
+
+    
+    private void HandleDraggingAfterCorrect(int index)
+    {
+        if (currentIndex < 3)
+        {
+            for (var i = 0; i < draggedObjects.Count; i++)
+            {
+                var isSnapped = draggedObjects[i].IsSnapped;
+                draggedObjects[i].CanDrag = !isSnapped && (i != index);
+            }
+        }else if (currentIndex == 3)
+        {
+            for (var i = 0; i < draggedObjects.Count; i++)
+            {
+                draggedObjects[i].CanDrag = false;
+            }
+        }
+        
+    }
+    
+    private int currentIndex;
+
+    private void Test()
+    {
+        currentIndex++;
     }
 
     private void SetDragPermissionFalse()

@@ -75,7 +75,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 7482667652216324306, guid: 75f5f34dc1b5347e0b8351032682f224, type: 3}
+  m_Sprite: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -83,7 +83,7 @@ SpriteRenderer:
   m_Size: {x: 1, y: 1}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!61 &1594255310498652348
@@ -129,7 +129,7 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 2, y: 2}
   m_EdgeRadius: 0
 --- !u!114 &-5298465540106449660
 MonoBehaviour:
@@ -146,8 +146,13 @@ MonoBehaviour:
   spriteRenderer: {fileID: 2443011381204149982}
   objCollider: {fileID: 1594255310498652348}
   moveSpeed: 30
-  isDragging: 0
   startPosition: {x: 0, y: 0}
   isSnapped: 0
+  objIndex: 0
   targetTransforms: []
   canDrag: 0
+  snapOffsetY: 1.2
+  snapOffsetX: 0
+  originOffsetY: 0
+  snapRange: 4
+  draggedLayer: 0

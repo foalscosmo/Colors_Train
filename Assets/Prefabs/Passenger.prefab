@@ -75,15 +75,15 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: -9095717837082945937, guid: 207ee8102dd4143d288186ef0be518ee, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.92156863}
+  m_Sprite: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
   m_Size: {x: 1, y: 2}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!114 &-2823524586999331764
@@ -103,12 +103,13 @@ MonoBehaviour:
   moveSpeed: 30
   startPosition: {x: 0, y: 0}
   isSnapped: 0
+  objIndex: 0
   targetTransforms: []
   canDrag: 0
-  snapOffsetY: 1.2
+  snapOffsetY: 0
   snapOffsetX: 0
   originOffsetY: 0
-  snapRange: 3
+  snapRange: 4
   draggedLayer: 0
 --- !u!70 &2710286778274570284
 CapsuleCollider2D:
@@ -143,5 +144,5 @@ CapsuleCollider2D:
   m_UsedByEffector: 0
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
-  m_Size: {x: 1, y: 2}
+  m_Size: {x: 2, y: 2}
   m_Direction: 0
