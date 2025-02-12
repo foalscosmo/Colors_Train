@@ -141,27 +141,6 @@ public class NextObjectMovement : MonoBehaviour
         }
     }
 
-    private void ResetBuildingPosition(int buildingIndex)
-    {
-        var building = buildingSpawner.BuildingObjects[buildingIndex];
-        if (buildingIndex == 0)
-        {
-             building.transform.position = buildingSpawner.SpawnPoint.transform.position;
-        }
-        else
-        {
-            building.transform.position = new Vector2(buildingSpawner.SpawnPoint.transform.position.x,
-                buildingSpawner.SpawnPoint.transform.position.y + 1.3f);
-        }
-        
-        var child = building.transform.GetChild(0);
-        var transform1 = child.transform;
-        var position = transform1.position;
-        position = new Vector2(
-            position.x - 1.5f, position.y);
-        transform1.position = position;
-    }
-
     private void MoveFruits()
     {
         foreach (var passenger in fruitsSpawner.DraggedObjects)
@@ -178,6 +157,27 @@ public class NextObjectMovement : MonoBehaviour
     {
         tunnel.DOMove(new Vector2(tunnel.transform.position.x - 52, tunnel.transform.position.y), moveDuration).SetEase(Ease.Linear);
 
+    }
+
+    private void ResetBuildingPosition(int buildingIndex)
+    {
+        var building = buildingSpawner.BuildingObjects[buildingIndex];
+        if (buildingIndex == 0)
+        {
+            building.transform.position = buildingSpawner.SpawnPoint.transform.position;
+        }
+        else
+        {
+            building.transform.position = new Vector2(buildingSpawner.SpawnPoint.transform.position.x,
+                buildingSpawner.SpawnPoint.transform.position.y + 1.3f);
+        }
+        
+        var child = building.transform.GetChild(0);
+        var transform1 = child.transform;
+        var position = transform1.position;
+        position = new Vector2(
+            position.x - 1.5f, position.y);
+        transform1.position = position;
     }
 
     private void ResetTunnel()

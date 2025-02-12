@@ -35,10 +35,10 @@ public class MapSpawner : MonoBehaviour
     {
         for (int i = 0; i < mapObjects.Count; i++)
         {
-            var cloned = Instantiate(mapObjects[i], spawnPoint[i].position, Quaternion.identity);
+            var cloned = Instantiate(mapObjects[i], spawnPoint[i].position, Quaternion.identity,transform);
             var cloned1 = Instantiate(mapObjects[i],
                 new Vector2(spawnPoint[i].transform.position.x + 52, spawnPoint[i].transform.position.y),
-                quaternion.identity);
+                quaternion.identity,transform);
             cloned.SetActive(true);
             cloned1.SetActive(true);
             cloneObjects.Add(cloned);

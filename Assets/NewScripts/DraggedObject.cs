@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using DG.Tweening;
 using UnityEngine;
 
@@ -10,7 +9,6 @@ public class DraggedObject : MonoBehaviour
     [SerializeField] private SpriteRenderer spriteRenderer;
     [SerializeField] private Collider2D objCollider;
     [SerializeField] private float moveSpeed;
-    private bool isDragging;
     private Vector2 touchOffset;
     [SerializeField] private Vector2 startPosition;
     [SerializeField] private bool isSnapped;
@@ -142,7 +140,6 @@ public class DraggedObject : MonoBehaviour
         Transform transform1;
         (transform1 = transform).DOScale(1.2f, 0.2f);
         spriteRenderer.sortingOrder = 10;
-        isDragging = true;
         touchOffset = (Vector2)transform1.position - touchWorldPos;
     }
 
@@ -151,16 +148,29 @@ public class DraggedObject : MonoBehaviour
         if (touch.fingerId != activeTouchID) return;
         if (canDrag)
         {
-            foreach (var target in from target in targetTransforms let distanceToTarget = Vector2.Distance(
-                         new Vector2(transform.position.x, transform.position.y),
-                         target.position
-                     ) let trainSlot = target.GetComponent<MatchingLayerType>() where distanceToTarget <= snapRange && trainSlot != null && DraggedLayer == trainSlot.MatchingLayer select target)
+            // foreach (var target in from target in targetTransforms let distanceToTarget = Vector2.Distance(
+            //              new Vector2(transform.position.x, transform.position.y),
+            //              target.position
+            //          ) let trainSlot = target.GetComponent<MatchingLayerType>() where distanceToTarget <= snapRange && trainSlot != null && DraggedLayer == trainSlot.MatchingLayer select target)
+            // {
+            //     SnapToTarget(target);
+            //     break;
+            // }
+            foreach (var target in targetTransforms)
             {
-                SnapToTarget(target);
-                break;
+                Collider2D targetCollider = target.GetComponent<Collider2D>();
+                if (targetCollider == null) continue;
+    
+                if (targetCollider.bounds.Contains(transform.position))
+                {
+                    MatchingLayerType trainSlot = target.GetComponent<MatchingLayerType>();
+                    if (trainSlot != null && DraggedLayer == trainSlot.MatchingLayer)
+                    {
+                        SnapToTarget(target);
+                        break;
+                    }
+                }
             }
-            isDragging = false;
-            spriteRenderer.sortingOrder = 5;
         }
 
         if (!IsSnapped && canDrag)
@@ -180,15 +190,46 @@ public class DraggedObject : MonoBehaviour
         transform.position = Vector2.Lerp(transform.position, targetPosition, moveSpeed);
     }
 
+    // private void SnapToTarget(Transform target)
+    // {
+    //     var position = target.position;
+    //     var targetPosition = new Vector3(position.x + snapOffsetX, position.y + snapOffsetY);
+    //     spriteRenderer.sortingOrder = 5;
+    //     if() // if target distance is more than 2 make duration 0.70
+    //     {
+    //         transform.DOMove(targetPosition, 0.70f).SetEase(Ease.OutBack).OnComplete(() =>
+    //         {
+    //             OnCorrectSnapWithInt?.Invoke(objIndex);
+    //         });  
+    //     }else if() // if target distance is less than 2 make duration 0.35
+    //     {
+    //         transform.DOMove(targetPosition, 0.35f).SetEase(Ease.OutBack).OnComplete(() =>
+    //         {
+    //             OnCorrectSnapWithInt?.Invoke(objIndex);
+    //         });   
+    //     }
+    //     
+    //     IsSnapped = true;
+    //     canDrag = false;
+    //     transform.SetParent(target);
+    //     transform.DOScale(1f, 0.2f);
+    //     OnCorrectSnap?.Invoke();
+    // }
+    
     private void SnapToTarget(Transform target)
     {
         var position = target.position;
         var targetPosition = new Vector3(position.x + snapOffsetX, position.y + snapOffsetY);
         spriteRenderer.sortingOrder = 5;
-        transform.DOMove(targetPosition, 0.35f).SetEase(Ease.OutBack).OnComplete(() =>
+
+        var distance = Vector2.Distance(transform.position, target.position);
+        var duration = distance > 4f ? 0.70f : 0.4f;
+
+        transform.DOMove(targetPosition, duration).SetEase(Ease.OutBack).OnComplete(() =>
         {
             OnCorrectSnapWithInt?.Invoke(objIndex);
         });
+
         IsSnapped = true;
         canDrag = false;
         transform.SetParent(target);
@@ -204,21 +245,5 @@ public class DraggedObject : MonoBehaviour
             OnIncorrectSnap?.Invoke(objIndex);
             spriteRenderer.sortingOrder = 5;
         });
-    }
-    
-    private void OnDrawGizmos()
-    {
-        if (targetTransforms == null || targetTransforms.Count == 0)
-            return;
-
-        Gizmos.color = Color.red;
-
-        foreach (var target in targetTransforms)
-        {
-            if (target != null)
-            {
-                Gizmos.DrawWireSphere(target.position, snapRange);
-            }
-        }
     }
 }
